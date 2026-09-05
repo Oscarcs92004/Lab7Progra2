@@ -9,6 +9,7 @@
  * @author oscar
  */
 import javax.swing.*;
+import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -16,10 +17,10 @@ import java.awt.event.KeyEvent;
 public class EditorTexto extends JFrame {
 
     private final JTextPane textPane = new JTextPane();
-    // hardcodeado en lo que busco el import
-    private final JComboBox<String> comboFuente = new JComboBox<>(new String[]{"Arial","Calibri","Times New Roman","Georgia","Courier New","Verdana","SansSerif","Serif"});
-    private final JComboBox<Integer> comboTamano = new JComboBox<>(new Integer[]{8, 10, 12, 14, 16, 18, 20, 24, 28, 36, 48});
-
+    private final GestorFuentes gestorFuentes = new GestorFuentes();
+    private final JComboBox<String> comboFuente;
+    private final JComboBox<Integer> comboTamano = new JComboBox<>(new Integer[]{8, 10, 12, 14, 16,18, 20, 24, 28,36, 48});
+    
     private final JToggleButton btnNegrita = new JToggleButton("N");
     private final JToggleButton btnCursiva = new JToggleButton("K");
     private final JToggleButton btnSubrayado = new JToggleButton("S");
@@ -31,11 +32,22 @@ public class EditorTexto extends JFrame {
 
     private final JLabel etiquetaEstado = new JLabel("0 palabras");
 
+    private void seleccionarFuenteInicial() {
+        if (gestorFuentes.obtenerFuente("Arial")!= null) {
+            comboFuente.setSelectedItem("Arial");
+        } else if (comboFuente.getItemCount() > 0) {
+            comboFuente.setSelectedIndex(0);
+        }
+    }
+
+    
     public EditorTexto() {
         super("Bloc de Notas");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1000, 750);
         setLocationRelativeTo(null);
+        comboFuente = new JComboBox<>(gestorFuentes.obtenerNombres());
+        seleccionarFuenteInicial();
         construirMenu();
         construirBarraHerramientas();
         construirAreaTexto();
@@ -71,16 +83,45 @@ public class EditorTexto extends JFrame {
 
         return item;
     }
+    
+    private void aplicarFuente(String nombreFuente) {
+        int inicio =textPane.getSelectionStart();
+        int fin =textPane.getSelectionEnd();
+        if (inicio == fin) {
+            StyledDocument documento =textPane.getStyledDocument();
+            SimpleAttributeSet atributos =new SimpleAttributeSet();
+            StyleConstants.setFontFamily(atributos,nombreFuente);
+            documento.setCharacterAttributes(inicio,1,atributos,false);
+            return;
+        }
+        StyledDocument documento = textPane.getStyledDocument();
+        SimpleAttributeSet atributos =new SimpleAttributeSet();
+        StyleConstants.setFontFamily(atributos,nombreFuente);
+        documento.setCharacterAttributes(inicio,fin - inicio,atributos,false);
+    }
+
+    private void aplicarTamano(int tamano) {
+        int inicio =textPane.getSelectionStart();
+        int fin =textPane.getSelectionEnd();
+        StyledDocument documento =textPane.getStyledDocument();
+        SimpleAttributeSet atributos =new SimpleAttributeSet();
+        StyleConstants.setFontSize(atributos,tamano
+        );
+        if (inicio != fin) {
+            documento.setCharacterAttributes(inicio,fin - inicio,atributos,false);
+        } else {
+            textPane.setCharacterAttributes(atributos,false);
+        }
+    }
+
 
     private void construirBarraHerramientas() {
 
         JToolBar barra = new JToolBar();
         barra.setFloatable(false);
-        comboFuente.setMaximumSize(
-        new Dimension(160, 28));
+        comboFuente.setMaximumSize(new Dimension(220, 28));
         comboFuente.setSelectedItem("Arial");
-        comboTamano.setMaximumSize(
-        new Dimension(60, 28));
+        comboTamano.setMaximumSize(new Dimension(70, 28));
         comboTamano.setSelectedItem(14);
         btnNegrita.setFont(btnNegrita.getFont().deriveFont(Font.BOLD));
         btnCursiva.setFont(btnCursiva.getFont().deriveFont(Font.ITALIC));
@@ -108,6 +149,21 @@ public class EditorTexto extends JFrame {
         barra.addSeparator();
         barra.add(btnTabla);
         add(barra, BorderLayout.NORTH);
+        
+        comboFuente.addActionListener(e-> {
+            String nombre = (String) comboFuente.getSelectedItem();
+            if(nombre != null){
+                aplicarFuente(nombre);
+            }
+        });
+        
+        comboTamano.addActionListener(e -> {
+            Integer tamano = (Integer) comboTamano.getSelectedItem();
+            if (tamano != null) {
+
+                aplicarTamano(tamano);
+            }
+        });
     }
 
     private void construirAreaTexto() {

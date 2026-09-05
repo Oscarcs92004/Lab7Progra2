@@ -11,6 +11,7 @@
 import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.io.File;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -20,15 +21,24 @@ import java.util.Map;
 public class GestorFuentes {
 
     private final Map<String, Font> fuentes = new LinkedHashMap<>();
+    
+    public GestorFuentes(){
+        cargarFuentes();
+    }
+    
+    public void cargarFuentes() {
+        try {
+            URL recurso = getClass().getClassLoader().getResource("PackFuentes");
 
-    public void cargarFuentes(String rutaCarpeta) {
-        File carpeta = new File(rutaCarpeta);
-        if (!carpeta.exists() || !carpeta.isDirectory()) {
-            System.err.println("No se encontró la carpeta de fuentes: "+ carpeta.getAbsolutePath());
-            return;
+            if (recurso == null) {
+                System.err.println("ERROR: No se encontró PackFuentes.");
+                return;
+            }
+            File carpeta = new File(recurso.toURI());
+            cargarDesdeCarpeta(carpeta);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        cargarDesdeCarpeta(carpeta);
-        System.out.println("Fuentes cargadas: " + fuentes.size());
     }
 
     private void cargarDesdeCarpeta(File carpeta) {
