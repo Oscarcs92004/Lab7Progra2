@@ -1,6 +1,7 @@
 package persistencia;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
@@ -13,16 +14,15 @@ import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 
 /**
- * Persistencia del editor .edt.
+ * Persistencia del editor.
  */
 public class PersistenciaEDT {
 
     private static final String MAGIC = "EDT1";
     private static final int VERSION = 1;
-    private static final int MINIMO = 16 + 4; // cabecera + CRC
+    private static final int MINIMO = 16 + 4;
 
     // Formato del archivo: cabecera, runs, tablas y CRC.
-
 
     public static void guardar(Documento documento, File archivo) throws EdtException, IOException {
         if (!archivo.getName().toLowerCase().endsWith(".edt")) {
@@ -45,6 +45,7 @@ public class PersistenciaEDT {
             }
 
             for (Tabla t : documento.getTablas()) {
+                rEdt.writeInt(t.getPosicion());
                 rEdt.writeInt(t.getFilas());
                 rEdt.writeInt(t.getColumnas());
                 for (int f = 0; f < t.getFilas(); f++) {
@@ -125,12 +126,14 @@ public class PersistenciaEDT {
                 }
 
                 for (int i = 0; i < cantTablas; i++) {
+                    int posicion = rEdt.readInt();
                     int filas = rEdt.readInt();
                     int columnas = rEdt.readInt();
-                    if (filas <= 0 || columnas <= 0) {
-                        throw new EdtException.ArchivoCorrupto("tabla con tamano invalido");
+                    if (posicion < 0 || filas <= 0 || columnas <= 0) {
+                        throw new EdtException.ArchivoCorrupto("tabla con datos invalidos");
                     }
                     Tabla tabla = new Tabla(filas, columnas);
+                    tabla.setPosicion(posicion);
                     for (int f = 0; f < filas; f++) {
                         for (int c = 0; c < columnas; c++) {
                             tabla.setCelda(f, c, rEdt.readUTF());
@@ -183,7 +186,10 @@ public class PersistenciaEDT {
             boolean subrayado = StyleConstants.isUnderline(at);
             boolean tachado = StyleConstants.isStrikeThrough(at);
             int colorRGB = StyleConstants.getForeground(at).getRGB() & 0xFFFFFF;
-            char letra = doc.getText(i, 1).charAt(0);
+
+            // Deja un espacio cuando hay una tabla insertada.
+            Component componente = StyleConstants.getComponent(at);
+            char letra = (componente != null) ? ' ' : doc.getText(i, 1).charAt(0);
 
             if (actual != null
                     && actual.getFuente().equals(fuente)
@@ -204,7 +210,7 @@ public class PersistenciaEDT {
         return documento;
     }
 
-    // Vuelve a aplicar el formato guardado al JTextPane.
+    // Vuelve a aplicar el formato guardado.
     public static void aplicarA(Documento documento, StyledDocument doc) throws BadLocationException {
         doc.remove(0, doc.getLength());
         for (Run r : documento.getRuns()) {
