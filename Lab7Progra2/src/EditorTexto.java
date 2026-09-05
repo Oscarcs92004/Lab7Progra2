@@ -9,10 +9,14 @@
  * @author oscar
  */
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.io.File;
+import java.io.IOException;
+import persistencia.EdtException;
 
 public class EditorTexto extends JFrame {
 
@@ -63,13 +67,26 @@ public class EditorTexto extends JFrame {
         JMenuBar menuBar = new JMenuBar();
         int atajo = InputEvent.CTRL_DOWN_MASK;
         JMenu menuArchivo = new JMenu("Archivo");
-        menuArchivo.add(crearItem("Nuevo",KeyEvent.VK_N,atajo));
-        menuArchivo.add(crearItem("Abrir...",KeyEvent.VK_O,atajo));
+
+        JMenuItem itemNuevo = crearItem("Nuevo",KeyEvent.VK_N,atajo);
+        JMenuItem itemAbrir = crearItem("Abrir...",KeyEvent.VK_O,atajo);
+        JMenuItem itemGuardar = crearItem("Guardar",KeyEvent.VK_S,atajo);
+        JMenuItem itemGuardarComo = crearItem("Guardar como...",KeyEvent.VK_S,atajo | InputEvent.SHIFT_DOWN_MASK);
+        JMenuItem itemSalir = crearItem("Salir",0,0);
+
+        itemNuevo.addActionListener(e -> accionNuevo());
+        itemAbrir.addActionListener(e -> accionAbrir());
+        itemGuardar.addActionListener(e -> accionGuardar());
+        itemGuardarComo.addActionListener(e -> accionGuardarComo());
+        itemSalir.addActionListener(e -> System.exit(0));
+
+        menuArchivo.add(itemNuevo);
+        menuArchivo.add(itemAbrir);
         menuArchivo.addSeparator();
-        menuArchivo.add(crearItem("Guardar",KeyEvent.VK_S,atajo));
-        menuArchivo.add(crearItem("Guardar como...",KeyEvent.VK_S,atajo | InputEvent.SHIFT_DOWN_MASK));
+        menuArchivo.add(itemGuardar);
+        menuArchivo.add(itemGuardarComo);
         menuArchivo.addSeparator();
-        menuArchivo.add(crearItem("Salir",0,0));
+        menuArchivo.add(itemSalir);
         JMenu menuEditar = new JMenu("Editar");
         menuEditar.add(crearItem("Deshacer",KeyEvent.VK_Z,atajo));
         menuEditar.add(crearItem("Rehacer",KeyEvent.VK_Y,atajo));
@@ -87,6 +104,27 @@ public class EditorTexto extends JFrame {
         }
 
         return item;
+    }
+
+    // ----- Menu Archivo: Nuevo / Abrir / Guardar / Guardar como -----
+
+    private void accionNuevo() {
+    }
+
+    private void accionAbrir() {
+    }
+
+    private void accionGuardar() {
+    }
+
+    private void accionGuardarComo() {
+    }
+
+    private void guardarEn(File archivo) {
+    }
+
+    private JFileChooser crearSelector() {
+        return null;
     }
     
     private void aplicarFuente(String nombreFuente) {
