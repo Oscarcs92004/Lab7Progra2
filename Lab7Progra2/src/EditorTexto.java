@@ -18,12 +18,14 @@ public class EditorTexto extends JFrame {
 
     private final JTextPane textPane = new JTextPane();
     private final GestorFuentes gestorFuentes = new GestorFuentes();
+    private final GestorFormatoTexto gestorFormato;
     private final JComboBox<String> comboFuente;
     private final JComboBox<Integer> comboTamano = new JComboBox<>(new Integer[]{8, 10, 12, 14, 16,18, 20, 24, 28,36, 48});
     
     private final JToggleButton btnNegrita = new JToggleButton("N");
-    private final JToggleButton btnCursiva = new JToggleButton("K");
+    private final JToggleButton btnCursiva = new JToggleButton("I");
     private final JToggleButton btnSubrayado = new JToggleButton("S");
+    private final JToggleButton btnTachado = new JToggleButton("T");
 
     private final JButton btnColor = new JButton();
     private final JButton btnTabla = new JButton("▦ Tabla");
@@ -46,6 +48,7 @@ public class EditorTexto extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1000, 750);
         setLocationRelativeTo(null);
+        gestorFormato = new GestorFormatoTexto(textPane);
         comboFuente = new JComboBox<>(gestorFuentes.obtenerNombres());
         seleccionarFuenteInicial();
         construirMenu();
@@ -128,6 +131,7 @@ public class EditorTexto extends JFrame {
         btnSubrayado.setToolTipText("Subrayado (Ctrl+U)");
         btnNegrita.setToolTipText("Negrita (Ctrl+B)");
         btnCursiva.setToolTipText("Cursiva (Ctrl+I)");
+        btnTachado.setToolTipText("Tachado (Ctrl+Shift+X)");
         btnColor.setPreferredSize(new Dimension(28, 28));
         btnColor.setToolTipText("Color de texto");
         btnColor.setBackground(Color.BLACK);
@@ -144,6 +148,7 @@ public class EditorTexto extends JFrame {
         barra.add(btnNegrita);
         barra.add(btnCursiva);
         barra.add(btnSubrayado);
+        barra.add(btnTachado);
         barra.addSeparator();
         barra.add(btnColor);
         barra.addSeparator();
@@ -164,6 +169,23 @@ public class EditorTexto extends JFrame {
                 aplicarTamano(tamano);
             }
         });
+        
+        btnNegrita.addActionListener(e-> {
+            gestorFormato.alternarNegrita();
+        });
+
+        btnCursiva.addActionListener(e-> {
+            gestorFormato.alternarCursiva();
+        });
+        
+        btnSubrayado.addActionListener(e-> {
+            gestorFormato.alternarSubrayado();
+        });
+        
+        btnTachado.addActionListener(e-> {
+            gestorFormato.alternarTachado();
+        });
+        
     }
 
     private void construirAreaTexto() {
