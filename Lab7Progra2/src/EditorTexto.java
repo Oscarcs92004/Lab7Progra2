@@ -27,6 +27,8 @@ public class EditorTexto extends JFrame {
     private final JButton btnColor = new JButton();
     private final JButton btnTabla = new JButton("▦ Tabla");
 
+    private final GestorTablas gestorTablas = new GestorTablas();
+
     private final JLabel etiquetaEstado = new JLabel("0 palabras");
 
     public EditorTexto() {
@@ -89,6 +91,12 @@ public class EditorTexto extends JFrame {
         btnColor.setToolTipText("Color de texto");
         btnColor.setBackground(Color.BLACK);
         btnTabla.setToolTipText("Insertar tabla");
+        btnTabla.addActionListener(e -> {
+            DialogoTabla dialogo = new DialogoTabla();
+            if (dialogo.mostrar(this)) {
+                gestorTablas.insertar(textPane, dialogo.getFilas(), dialogo.getColumnas());
+            }
+        });
         barra.add(comboFuente);
         barra.add(comboTamano);
         barra.addSeparator();
