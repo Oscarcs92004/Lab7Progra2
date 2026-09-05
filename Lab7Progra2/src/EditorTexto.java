@@ -139,13 +139,10 @@ public class EditorTexto extends JFrame {
         }
         File archivo = selector.getSelectedFile();
         try {
-            // 1. Leer el archivo .edt
             Documento documento = PersistenciaEDT.abrir(archivo);
 
-            // 2. Poner el texto con formato en el editor
             PersistenciaEDT.aplicarA(documento, textPane.getStyledDocument());
 
-            // 3. Volver a poner las tablas en su posicion
             java.util.ArrayList<TablaDoc> tablas = new java.util.ArrayList<>();
             for (Tabla t : documento.getTablas()) {
                 TablaDoc td = new TablaDoc(t.getPosicion(), t.getFilas(), t.getColumnas());
@@ -167,7 +164,6 @@ public class EditorTexto extends JFrame {
     }
 
     private void accionGuardar() {
-        // Si el documento nunca se ha guardado, se comporta como "Guardar como"
         if (archivoActual == null) {
             accionGuardarComo();
         } else {
@@ -182,7 +178,6 @@ public class EditorTexto extends JFrame {
         }
         File archivo = selector.getSelectedFile();
 
-        // Asegurar que el nombre termine en .edt
         if (!archivo.getName().toLowerCase().endsWith(".edt")) {
             archivo = new File(archivo.getParentFile(), archivo.getName() + ".edt");
         }
@@ -191,10 +186,8 @@ public class EditorTexto extends JFrame {
 
     private void guardarEn(File archivo) {
         try {
-            // 1. Pasar el contenido del editor a un Documento
             Documento documento = PersistenciaEDT.desdeStyledDocument(textPane.getStyledDocument());
 
-            // 2. Agregar las tablas que haya en el area de texto
             for (TablaDoc td : gestorTablas.extraer(textPane)) {
                 Tabla tabla = new Tabla(td.getFilas(), td.getColumnas());
                 tabla.setPosicion(td.getPosicion());
@@ -206,7 +199,6 @@ public class EditorTexto extends JFrame {
                 documento.agregarTabla(tabla);
             }
 
-            // 3. Guardar en el archivo .edt
             PersistenciaEDT.guardar(documento, archivo);
 
             archivoActual = archivo;
