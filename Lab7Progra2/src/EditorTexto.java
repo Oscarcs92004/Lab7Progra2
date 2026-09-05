@@ -11,6 +11,7 @@
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.*;
+import javax.swing.undo.UndoManager;
 import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -36,6 +37,7 @@ public class EditorTexto extends JFrame {
     private final JButton btnTabla = new JButton("▦ Tabla");
 
     private final GestorTablas gestorTablas = new GestorTablas();
+    private final UndoManager gestorDeshacer = new UndoManager();
 
     private final JLabel etiquetaEstado = new JLabel("0 palabras");
 
@@ -88,8 +90,20 @@ public class EditorTexto extends JFrame {
         menuArchivo.addSeparator();
         menuArchivo.add(itemSalir);
         JMenu menuEditar = new JMenu("Editar");
-        menuEditar.add(crearItem("Deshacer",KeyEvent.VK_Z,atajo));
-        menuEditar.add(crearItem("Rehacer",KeyEvent.VK_Y,atajo));
+        JMenuItem itemDeshacer = crearItem("Deshacer",KeyEvent.VK_Z,atajo);
+        JMenuItem itemRehacer = crearItem("Rehacer",KeyEvent.VK_Y,atajo);
+        itemDeshacer.addActionListener(e -> {
+            if (gestorDeshacer.canUndo()) {
+                gestorDeshacer.undo();
+            }
+        });
+        itemRehacer.addActionListener(e -> {
+            if (gestorDeshacer.canRedo()) {
+                gestorDeshacer.redo();
+            }
+        });
+        menuEditar.add(itemDeshacer);
+        menuEditar.add(itemRehacer);
         menuEditar.addSeparator();
         menuEditar.add(crearItem("Seleccionar todo",KeyEvent.VK_A,atajo));
         menuBar.add(menuArchivo);
@@ -234,6 +248,7 @@ public class EditorTexto extends JFrame {
     private void construirAreaTexto() {
         textPane.setMargin(new Insets(50, 70, 50, 70));
         textPane.setFont(new Font("Arial",Font.PLAIN,14));
+        textPane.getDocument().addUndoableEditListener(gestorDeshacer);
         JScrollPane scroll = new JScrollPane(textPane);
         scroll.getViewport().setBackground(Color.WHITE);
         scroll.getVerticalScrollBar().setUnitIncrement(16);
