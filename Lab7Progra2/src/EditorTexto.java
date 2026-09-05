@@ -17,7 +17,10 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
+import persistencia.Documento;
 import persistencia.EdtException;
+import persistencia.PersistenciaEDT;
+import persistencia.Tabla;
 
 public class EditorTexto extends JFrame {
 
@@ -38,6 +41,7 @@ public class EditorTexto extends JFrame {
 
     private final GestorTablas gestorTablas = new GestorTablas();
     private final UndoManager gestorDeshacer = new UndoManager();
+    private File archivoActual = null;
 
     private final JLabel etiquetaEstado = new JLabel("0 palabras");
 
@@ -123,22 +127,100 @@ public class EditorTexto extends JFrame {
     // ----- Menu Archivo: Nuevo / Abrir / Guardar / Guardar como -----
 
     private void accionNuevo() {
+        textPane.setText("");
+        archivoActual = null;
+        setTitle("Bloc de Notas");
     }
 
     private void accionAbrir() {
+        JFileChooser selector = crearSelector();
+        if (selector.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+        File archivo = selector.getSelectedFile();
+        try {
+            // 1. Leer el archivo .edt
+            Documento documento = PersistenciaEDT.abrir(archivo);
+
+            // 2. Poner el texto con formato en el editor
+            PersistenciaEDT.aplicarA(documento, textPane.getStyledDocument());
+
+            // 3. Volver a poner las tablas en su posicion
+            java.util.ArrayList<TablaDoc> tablas = new java.util.ArrayList<>();
+            for (Tabla t : documento.getTablas()) {
+                TablaDoc td = new TablaDoc(t.getPosicion(), t.getFilas(), t.getColumnas());
+                for (int f = 0; f < t.getFilas(); f++) {
+                    for (int c = 0; c < t.getColumnas(); c++) {
+                        td.setDato(f, c, t.getCelda(f, c));
+                    }
+                }
+                tablas.add(td);
+            }
+            gestorTablas.aplicar(tablas, textPane);
+
+            archivoActual = archivo;
+            setTitle("Bloc de Notas - " + archivo.getName());
+        } catch (EdtException | BadLocationException | IOException e) {
+            JOptionPane.showMessageDialog(this, e.getMessage(),
+                    "No se pudo abrir", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void accionGuardar() {
+        // Si el documento nunca se ha guardado, se comporta como "Guardar como"
+        if (archivoActual == null) {
+            accionGuardarComo();
+        } else {
+            guardarEn(archivoActual);
+        }
     }
 
     private void accionGuardarComo() {
+        JFileChooser selector = crearSelector();
+        if (selector.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+        File archivo = selector.getSelectedFile();
+
+        // Asegurar que el nombre termine en .edt
+        if (!archivo.getName().toLowerCase().endsWith(".edt")) {
+            archivo = new File(archivo.getParentFile(), archivo.getName() + ".edt");
+        }
+        guardarEn(archivo);
     }
 
     private void guardarEn(File archivo) {
+        try {
+            // 1. Pasar el contenido del editor a un Documento
+            Documento documento = PersistenciaEDT.desdeStyledDocument(textPane.getStyledDocument());
+
+            // 2. Agregar las tablas que haya en el area de texto
+            for (TablaDoc td : gestorTablas.extraer(textPane)) {
+                Tabla tabla = new Tabla(td.getFilas(), td.getColumnas());
+                tabla.setPosicion(td.getPosicion());
+                for (int f = 0; f < td.getFilas(); f++) {
+                    for (int c = 0; c < td.getColumnas(); c++) {
+                        tabla.setCelda(f, c, td.getDato(f, c));
+                    }
+                }
+                documento.agregarTabla(tabla);
+            }
+
+            // 3. Guardar en el archivo .edt
+            PersistenciaEDT.guardar(documento, archivo);
+
+            archivoActual = archivo;
+            setTitle("Bloc de Notas - " + archivo.getName());
+        } catch (EdtException | BadLocationException | IOException e) {
+            JOptionPane.showMessageDialog(this, e.getMessage(),
+                    "No se pudo guardar", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private JFileChooser crearSelector() {
-        return null;
+        JFileChooser selector = new JFileChooser();
+        selector.setFileFilter(new FileNameExtensionFilter("Documento del editor (*.edt)", "edt"));
+        return selector;
     }
     
     private void aplicarFuente(String nombreFuente) {
