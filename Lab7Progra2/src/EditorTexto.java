@@ -20,7 +20,8 @@ public class EditorTexto extends JFrame {
     private final GestorFuentes gestorFuentes = new GestorFuentes();
     private final GestorFormatoTexto gestorFormato;
     private final JComboBox<String> comboFuente;
-    private final JComboBox<Integer> comboTamano = new JComboBox<>(new Integer[]{8, 10, 12, 14, 16,18, 20, 24, 28,36, 48});
+    private final GestorColorTexto gestorColor;
+    private final JComboBox<Integer> comboTamano = new JComboBox<>(new Integer[]{6, 8, 10, 12, 14, 16,18, 20, 24, 28,36, 48, 60, 72, 96});
     
     private final JToggleButton btnNegrita = new JToggleButton("N");
     private final JToggleButton btnCursiva = new JToggleButton("I");
@@ -48,13 +49,14 @@ public class EditorTexto extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1000, 750);
         setLocationRelativeTo(null);
-        gestorFormato = new GestorFormatoTexto(textPane);
         comboFuente = new JComboBox<>(gestorFuentes.obtenerNombres());
         seleccionarFuenteInicial();
         construirMenu();
         construirBarraHerramientas();
         construirAreaTexto();
         construirBarraEstado();
+        gestorFormato = new GestorFormatoTexto(textPane);
+        gestorColor = new GestorColorTexto(textPane);
     }
 
     private void construirMenu() {
@@ -88,26 +90,26 @@ public class EditorTexto extends JFrame {
     }
     
     private void aplicarFuente(String nombreFuente) {
-        int inicio =textPane.getSelectionStart();
-        int fin =textPane.getSelectionEnd();
+        int inicio = textPane.getSelectionStart();
+        int fin = textPane.getSelectionEnd();
         if (inicio == fin) {
-            StyledDocument documento =textPane.getStyledDocument();
-            SimpleAttributeSet atributos =new SimpleAttributeSet();
+            StyledDocument documento = textPane.getStyledDocument();
+            SimpleAttributeSet atributos = new SimpleAttributeSet();
             StyleConstants.setFontFamily(atributos,nombreFuente);
             documento.setCharacterAttributes(inicio,1,atributos,false);
             return;
         }
         StyledDocument documento = textPane.getStyledDocument();
-        SimpleAttributeSet atributos =new SimpleAttributeSet();
+        SimpleAttributeSet atributos = new SimpleAttributeSet();
         StyleConstants.setFontFamily(atributos,nombreFuente);
         documento.setCharacterAttributes(inicio,fin - inicio,atributos,false);
     }
 
     private void aplicarTamano(int tamano) {
-        int inicio =textPane.getSelectionStart();
-        int fin =textPane.getSelectionEnd();
-        StyledDocument documento =textPane.getStyledDocument();
-        SimpleAttributeSet atributos =new SimpleAttributeSet();
+        int inicio = textPane.getSelectionStart();
+        int fin = textPane.getSelectionEnd();
+        StyledDocument documento = textPane.getStyledDocument();
+        SimpleAttributeSet atributos = new SimpleAttributeSet();
         StyleConstants.setFontSize(atributos,tamano
         );
         if (inicio != fin) {
@@ -165,7 +167,6 @@ public class EditorTexto extends JFrame {
         comboTamano.addActionListener(e -> {
             Integer tamano = (Integer) comboTamano.getSelectedItem();
             if (tamano != null) {
-
                 aplicarTamano(tamano);
             }
         });
@@ -185,6 +186,10 @@ public class EditorTexto extends JFrame {
         btnTachado.addActionListener(e-> {
             gestorFormato.alternarTachado();
         });
+        
+        btnColor.addActionListener(e -> {
+            gestorColor.seleccionarColor();
+       });
         
     }
 
